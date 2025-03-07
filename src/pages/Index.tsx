@@ -3,9 +3,11 @@ import React from 'react';
 import { User, Users, Baby, Heart } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const doctorName = "Ana Silva";
+  const isMobile = useIsMobile();
   
   const categories = [
     { 
@@ -30,9 +32,10 @@ const Index = () => {
     },
   ];
 
-  // Function to create a custom PersonStanding icon for elderly
-  const PersonStanding = (props: any) => (
+  // Define proper ForwardRef components for custom icons
+  const PersonStanding = React.forwardRef((props, ref) => (
     <svg
+      ref={ref as React.Ref<SVGSVGElement>}
       {...props}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
@@ -48,14 +51,17 @@ const Index = () => {
       <path d="m11 7-1.5 4.5m5-3.5c.5 1 1.5 3 1.5 3m-4-3v10h4" />
       <path d="M11 18v2" />
     </svg>
-  );
+  ));
+  
+  PersonStanding.displayName = 'PersonStanding';
 
-  // Update the elderly icon to use the custom icon
+  // Update the elderly icon
   categories[2].icon = PersonStanding;
 
-  // Function to create a custom Pregnant icon
-  const Pregnant = (props: any) => (
+  // Define proper ForwardRef component for Pregnant icon
+  const Pregnant = React.forwardRef((props, ref) => (
     <svg
+      ref={ref as React.Ref<SVGSVGElement>}
       {...props}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
@@ -73,15 +79,19 @@ const Index = () => {
       <path d="M9.5 14c-.83 2-2 3-3.5 3s-2.67-1-3.5-3" />
       <path d="M7.5 18c0 1 1.5 2 4.5 2" />
     </svg>
-  );
+  ));
+  
+  Pregnant.displayName = 'Pregnant';
 
-  // Update the pregnant women icon to use the custom icon
+  // Update the pregnant women icon
   categories[3].icon = Pregnant;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
       <Sidebar doctorName={doctorName} />
-      <Dashboard categories={categories} />
+      <div className={`flex-1 ${isMobile ? 'pt-12' : ''}`}>
+        <Dashboard categories={categories} />
+      </div>
     </div>
   );
 };
