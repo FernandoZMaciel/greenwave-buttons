@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Menu, X } from 'lucide-react';
+import { User, Menu, X, LogOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SidebarProps {
@@ -67,7 +67,14 @@ const Sidebar: React.FC<SidebarProps> = ({ doctorName }) => {
         </nav>
         
         <div className="mt-auto pt-6 border-t border-white/10 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-          <p className="text-white/60 text-xs text-center">MFC Help © 2023</p>
+          <button 
+            className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white rounded-lg px-4 py-2.5 transition-all duration-200 animate-fade-in"
+            style={{ animationDelay: '0.5s' }}
+          >
+            <LogOut size={18} />
+            <span>Sair</span>
+          </button>
+          <p className="text-white/60 text-xs text-center mt-4">MFC Help © 2023</p>
         </div>
       </aside>
     </>
