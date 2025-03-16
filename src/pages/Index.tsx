@@ -1,41 +1,20 @@
 
 import React from 'react';
-import { User, Users, Baby, Heart } from 'lucide-react';
+import { User, Users, Baby, Heart, LucideProps } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const doctorName = "Ana Silva";
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
-  const categories = [
-    { 
-      icon: User, 
-      label: "Homens" 
-    },
-    { 
-      icon: Users, 
-      label: "Mulheres" 
-    },
-    { 
-      icon: User, 
-      label: "Idosos" 
-    },
-    { 
-      icon: Users, 
-      label: "Gestantes" 
-    },
-    { 
-      icon: Baby, 
-      label: "Bebês" 
-    },
-  ];
-
-  // Define proper ForwardRef components for custom icons
-  const PersonStanding = React.forwardRef((props, ref) => (
+  // Define proper ForwardRef components for custom icons with correct TypeScript types
+  const PersonStanding = React.forwardRef<SVGSVGElement, LucideProps>((props, ref) => (
     <svg
-      ref={ref as React.Ref<SVGSVGElement>}
+      ref={ref}
       {...props}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
@@ -55,13 +34,10 @@ const Index = () => {
   
   PersonStanding.displayName = 'PersonStanding';
 
-  // Update the elderly icon
-  categories[2].icon = PersonStanding;
-
-  // Define proper ForwardRef component for Pregnant icon
-  const Pregnant = React.forwardRef((props, ref) => (
+  // Define proper ForwardRef component for Pregnant icon with correct TypeScript types
+  const Pregnant = React.forwardRef<SVGSVGElement, LucideProps>((props, ref) => (
     <svg
-      ref={ref as React.Ref<SVGSVGElement>}
+      ref={ref}
       {...props}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
@@ -82,9 +58,30 @@ const Index = () => {
   ));
   
   Pregnant.displayName = 'Pregnant';
-
-  // Update the pregnant women icon
-  categories[3].icon = Pregnant;
+  
+  const categories = [
+    { 
+      icon: User, 
+      label: "Homens" 
+    },
+    { 
+      icon: Users, 
+      label: "Mulheres" 
+    },
+    { 
+      icon: PersonStanding, 
+      label: "Idosos" 
+    },
+    { 
+      icon: Pregnant, 
+      label: "Gestantes",
+      onClick: () => navigate('/gestantes-cadastro')
+    },
+    { 
+      icon: Baby, 
+      label: "Bebês" 
+    },
+  ];
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">

@@ -6,6 +6,7 @@ interface DashboardProps {
   categories: {
     icon: any;
     label: string;
+    onClick?: () => void;
   }[];
 }
 
@@ -26,6 +27,7 @@ const Dashboard: React.FC<DashboardProps> = ({ categories }) => {
             icon={category.icon}
             label={category.label}
             index={index}
+            onClick={category.onClick}
           />
         ))}
       </div>
