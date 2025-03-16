@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Sidebar from '@/components/Sidebar';
@@ -110,7 +109,7 @@ const GestantesCadastro: React.FC = () => {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
                   <FormField
                     control={form.control}
                     name="nomeCompleto"
@@ -291,16 +290,19 @@ const GestantesCadastro: React.FC = () => {
                       render={({ field }) => (
                         <FormItem className="flex-1">
                           <FormLabel>Idade Gestacional</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="Semanas" 
-                              min={1}
-                              max={42}
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                            />
-                          </FormControl>
+                          <div className="flex flex-col">
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="Semanas" 
+                                min={1}
+                                max={42}
+                                {...field}
+                                onChange={(e) => field.onChange(Number(e.target.value))}
+                              />
+                            </FormControl>
+                            <span className="text-xs text-gray-500 mt-1">Semanas</span>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -311,16 +313,19 @@ const GestantesCadastro: React.FC = () => {
                       render={({ field }) => (
                         <FormItem className="flex-1">
                           <FormLabel className="opacity-0">Dias</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="Dias" 
-                              min={0}
-                              max={6}
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                            />
-                          </FormControl>
+                          <div className="flex flex-col">
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="Dias" 
+                                min={0}
+                                max={6}
+                                {...field}
+                                onChange={(e) => field.onChange(Number(e.target.value))}
+                              />
+                            </FormControl>
+                            <span className="text-xs text-gray-500 mt-1">Dias</span>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
