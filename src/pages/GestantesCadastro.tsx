@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Sidebar from '@/components/Sidebar';
 import { useForm } from 'react-hook-form';
@@ -36,6 +36,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const formSchema = z.object({
   nomeCompleto: z.string().min(3, { message: 'O nome completo é obrigatório' }),
@@ -58,6 +66,7 @@ const GestantesCadastro: React.FC = () => {
   const isMobile = useIsMobile();
   const doctorName = "Ana Silva";
   const { toast } = useToast();
+  const [showConsultaModal, setShowConsultaModal] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -80,6 +89,7 @@ const GestantesCadastro: React.FC = () => {
       title: "Cadastro realizado com sucesso",
       description: `Gestante ${data.nomeCompleto} foi cadastrada`,
     });
+    setShowConsultaModal(true);
   };
 
   return (
@@ -93,14 +103,14 @@ const GestantesCadastro: React.FC = () => {
           <h1 className="text-2xl md:text-3xl font-medium text-mfc-blue">Cadastro de Gestantes</h1>
         </div>
 
-        <Card className="max-w-4xl mx-auto">
+        <Card className="max-w-5xl mx-auto">
           <CardHeader>
             <CardTitle className="text-xl text-mfc-blue">Informações da Gestante</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                   <FormField
                     control={form.control}
                     name="nomeCompleto"
@@ -455,6 +465,32 @@ const GestantesCadastro: React.FC = () => {
             </Form>
           </CardContent>
         </Card>
+
+        <Dialog open={showConsultaModal} onOpenChange={setShowConsultaModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-center text-lg font-medium text-mfc-blue">Cadastro Realizado</DialogTitle>
+              <DialogDescription className="text-center pt-2">
+                Realizar a consulta desta paciente?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-row justify-center gap-4 sm:justify-center">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowConsultaModal(false)}
+                className="min-w-20"
+              >
+                Não
+              </Button>
+              <Button 
+                className="min-w-20 bg-mfc-green hover:bg-mfc-green/90" 
+                onClick={() => setShowConsultaModal(false)}
+              >
+                Sim
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
