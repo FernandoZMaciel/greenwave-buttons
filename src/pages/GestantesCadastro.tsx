@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Sidebar from '@/components/Sidebar';
@@ -46,6 +45,9 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 
+const comorbidadesValues = ['diabetes', 'has', 'nenhuma'] as const;
+type ComorbidadesValue = (typeof comorbidadesValues)[number];
+
 const formSchema = z.object({
   nomeCompleto: z.string().min(3, { message: 'O nome completo é obrigatório' }),
   dataNascimento: z.date({ required_error: 'A data de nascimento é obrigatória' }),
@@ -60,7 +62,7 @@ const formSchema = z.object({
   cesareas: z.number().min(0).optional(),
   abortos: z.number().min(0).optional(),
   obitosFetais: z.number().min(0).optional(),
-  comorbidades: z.enum(['diabetes', 'has', 'nenhuma']).default('nenhuma'),
+  comorbidades: z.array(z.enum(comorbidadesValues)),
   ocupacao: z.string().min(2, { message: 'A ocupação é obrigatória' }),
   avaliacaoDentaria: z.enum(['sim', 'nao']),
   nomeBebe: z.string().optional(),
@@ -89,7 +91,7 @@ const GestantesCadastro: React.FC = () => {
       cesareas: 0,
       abortos: 0,
       obitosFetais: 0,
-      comorbidades: 'nenhuma',
+      comorbidades: [],
       ocupacao: '',
       avaliacaoDentaria: 'nao',
       nomeBebe: '',
@@ -97,11 +99,9 @@ const GestantesCadastro: React.FC = () => {
     },
   });
 
-  // Watch gravidez anteriores to conditionally show detail fields
   const gravidezAnteriores = form.watch('gravidezAnteriores');
   
   React.useEffect(() => {
-    // Update visibility of gravidez detalhes fields based on gravidezAnteriores value
     setShowGravidezDetalhes(gravidezAnteriores > 0);
   }, [gravidezAnteriores]);
 
@@ -442,7 +442,6 @@ const GestantesCadastro: React.FC = () => {
                   />
                 </div>
 
-                {/* Gravidez Anteriores e Detalhes */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -465,7 +464,6 @@ const GestantesCadastro: React.FC = () => {
                   />
                 </div>
 
-                {/* Detalhes da gravidez anterior (mostrado apenas se gravidezAnteriores > 0) */}
                 {showGravidezDetalhes && (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <FormField
@@ -547,7 +545,6 @@ const GestantesCadastro: React.FC = () => {
                   </div>
                 )}
 
-                {/* Comorbidades como Select/Combobox */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -555,21 +552,71 @@ const GestantesCadastro: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Comorbidades</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma opção" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="diabetes">Diabetes</SelectItem>
-                            <SelectItem value="has">HAS (Hipertensão)</SelectItem>
-                            <SelectItem value="nenhuma">Nenhuma</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-2">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox 
+                                id="diabetes"
+                                checked={field.value?.includes('diabetes')}
+                                onCheckedChange={(checked) => {
+                                  const currentValues = [...field.value];
+                                  if (checked) {
+                                    const withoutNenhuma = currentValues.filter(val => val !== 'nenhuma');
+                                    field.onChange([...withoutNenhuma, 'diabetes']);
+                                  } else {
+                                    field.onChange(currentValues.filter(val => val !== 'diabetes'));
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor="diabetes"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                Diabetes
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox 
+                                id="has"
+                                checked={field.value?.includes('has')}
+                                onCheckedChange={(checked) => {
+                                  const currentValues = [...field.value];
+                                  if (checked) {
+                                    const withoutNenhuma = currentValues.filter(val => val !== 'nenhuma');
+                                    field.onChange([...withoutNenhuma, 'has']);
+                                  } else {
+                                    field.onChange(currentValues.filter(val => val !== 'has'));
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor="has"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                HAS (Hipertensão)
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox 
+                                id="nenhuma"
+                                checked={field.value?.includes('nenhuma')}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    field.onChange(['nenhuma']);
+                                  } else {
+                                    field.onChange([]);
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor="nenhuma"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                Nenhuma
+                              </label>
+                            </div>
+                          </div>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
