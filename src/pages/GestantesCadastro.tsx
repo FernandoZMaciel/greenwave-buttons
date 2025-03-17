@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Sidebar from '@/components/Sidebar';
@@ -5,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, CheckIcon } from 'lucide-react';
+import { CalendarIcon, CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react';
 import { ptBR } from 'date-fns/locale';
 
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const formSchema = z.object({
   nomeCompleto: z.string().min(3, { message: 'O nome completo é obrigatório' }),
@@ -52,7 +54,17 @@ const formSchema = z.object({
   dataUsg: z.date({ required_error: 'A data da 1ª USG é obrigatória' }),
   idadeGestacionalSemanas: z.number().min(1).max(42),
   idadeGestacionalDias: z.number().min(0).max(6),
-  gravidezDesejada: z.enum(['sim', 'nao']),
+  gravidezPlanejada: z.enum(['sim', 'nao']),
+  gravidezAnteriores: z.number().min(0),
+  partosVaginais: z.number().min(0).optional(),
+  cesareas: z.number().min(0).optional(),
+  abortos: z.number().min(0).optional(),
+  obitosFetais: z.number().min(0).optional(),
+  comorbidades: z.object({
+    diabetes: z.boolean().default(false),
+    has: z.boolean().default(false),
+    nenhuma: z.boolean().default(false),
+  }),
   ocupacao: z.string().min(2, { message: 'A ocupação é obrigatória' }),
   avaliacaoDentaria: z.enum(['sim', 'nao']),
   nomeBebe: z.string().optional(),
@@ -66,6 +78,7 @@ const GestantesCadastro: React.FC = () => {
   const doctorName = "Ana Silva";
   const { toast } = useToast();
   const [showConsultaModal, setShowConsultaModal] = useState(false);
+  const [showGravidezDetalhes, setShowGravidezDetalhes] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -74,13 +87,51 @@ const GestantesCadastro: React.FC = () => {
       cns: '',
       idadeGestacionalSemanas: 0,
       idadeGestacionalDias: 0,
-      gravidezDesejada: 'sim',
+      gravidezPlanejada: 'sim',
+      gravidezAnteriores: 0,
+      partosVaginais: 0,
+      cesareas: 0,
+      abortos: 0,
+      obitosFetais: 0,
+      comorbidades: {
+        diabetes: false,
+        has: false,
+        nenhuma: false,
+      },
       ocupacao: '',
       avaliacaoDentaria: 'nao',
       nomeBebe: '',
       sexoBebe: 'nao_definido',
     },
   });
+
+  // Watch gravidez anteriores to conditionally show detail fields
+  const gravidezAnteriores = form.watch('gravidezAnteriores');
+  
+  // Watch comorbidades to handle the "nenhuma" checkbox logic
+  const comorbidades = form.watch('comorbidades');
+  
+  // Handle "nenhuma" checkbox
+  const handleNenhumaChange = (checked: boolean) => {
+    if (checked) {
+      form.setValue('comorbidades.diabetes', false);
+      form.setValue('comorbidades.has', false);
+    }
+    form.setValue('comorbidades.nenhuma', checked);
+  };
+  
+  // Handle other comorbidades checkboxes
+  const handleComorbidadeChange = (field: 'diabetes' | 'has', checked: boolean) => {
+    if (checked && form.getValues('comorbidades.nenhuma')) {
+      form.setValue('comorbidades.nenhuma', false);
+    }
+    form.setValue(`comorbidades.${field}`, checked);
+  };
+
+  React.useEffect(() => {
+    // Update visibility of gravidez detalhes fields based on gravidezAnteriores value
+    setShowGravidezDetalhes(gravidezAnteriores > 0);
+  }, [gravidezAnteriores]);
 
   const onSubmit = (data: FormValues) => {
     console.log(data);
@@ -350,10 +401,10 @@ const GestantesCadastro: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="gravidezDesejada"
+                    name="gravidezPlanejada"
                     render={({ field }) => (
                       <FormItem className="space-y-3">
-                        <FormLabel>Gravidez desejada?</FormLabel>
+                        <FormLabel>Gravidez planejada?</FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
@@ -417,6 +468,157 @@ const GestantesCadastro: React.FC = () => {
                       </FormItem>
                     )}
                   />
+                </div>
+
+                {/* Gravidez Anteriores e Detalhes */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="gravidezAnteriores"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gravidez anteriores</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Número de gravidezes anteriores"
+                            min={0}
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Detalhes da gravidez anterior (mostrado apenas se gravidezAnteriores > 0) */}
+                {showGravidezDetalhes && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="partosVaginais"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Partos vaginais</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="Quantidade"
+                              min={0}
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cesareas"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cesáreas</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="Quantidade"
+                              min={0}
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="abortos"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Abortos</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="Quantidade"
+                              min={0}
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="obitosFetais"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Óbitos fetais</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="Quantidade"
+                              min={0}
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {/* Comorbidades */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-medium">Comorbidades</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="diabetes" 
+                        checked={comorbidades.diabetes}
+                        onCheckedChange={(checked) => handleComorbidadeChange('diabetes', checked as boolean)}
+                      />
+                      <label
+                        htmlFor="diabetes"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Diabetes
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="has" 
+                        checked={comorbidades.has}
+                        onCheckedChange={(checked) => handleComorbidadeChange('has', checked as boolean)}
+                      />
+                      <label
+                        htmlFor="has"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        HAS (Hipertensão)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="nenhuma" 
+                        checked={comorbidades.nenhuma}
+                        onCheckedChange={(checked) => handleNenhumaChange(checked as boolean)}
+                      />
+                      <label
+                        htmlFor="nenhuma"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Nenhuma
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
