@@ -60,11 +60,7 @@ const formSchema = z.object({
   cesareas: z.number().min(0).optional(),
   abortos: z.number().min(0).optional(),
   obitosFetais: z.number().min(0).optional(),
-  comorbidades: z.object({
-    diabetes: z.boolean().default(false),
-    has: z.boolean().default(false),
-    nenhuma: z.boolean().default(false),
-  }),
+  comorbidades: z.enum(['diabetes', 'has', 'nenhuma']).default('nenhuma'),
   ocupacao: z.string().min(2, { message: 'A ocupação é obrigatória' }),
   avaliacaoDentaria: z.enum(['sim', 'nao']),
   nomeBebe: z.string().optional(),
@@ -93,11 +89,7 @@ const GestantesCadastro: React.FC = () => {
       cesareas: 0,
       abortos: 0,
       obitosFetais: 0,
-      comorbidades: {
-        diabetes: false,
-        has: false,
-        nenhuma: false,
-      },
+      comorbidades: 'nenhuma',
       ocupacao: '',
       avaliacaoDentaria: 'nao',
       nomeBebe: '',
@@ -108,26 +100,6 @@ const GestantesCadastro: React.FC = () => {
   // Watch gravidez anteriores to conditionally show detail fields
   const gravidezAnteriores = form.watch('gravidezAnteriores');
   
-  // Watch comorbidades to handle the "nenhuma" checkbox logic
-  const comorbidades = form.watch('comorbidades');
-  
-  // Handle "nenhuma" checkbox
-  const handleNenhumaChange = (checked: boolean) => {
-    if (checked) {
-      form.setValue('comorbidades.diabetes', false);
-      form.setValue('comorbidades.has', false);
-    }
-    form.setValue('comorbidades.nenhuma', checked);
-  };
-  
-  // Handle other comorbidades checkboxes
-  const handleComorbidadeChange = (field: 'diabetes' | 'has', checked: boolean) => {
-    if (checked && form.getValues('comorbidades.nenhuma')) {
-      form.setValue('comorbidades.nenhuma', false);
-    }
-    form.setValue(`comorbidades.${field}`, checked);
-  };
-
   React.useEffect(() => {
     // Update visibility of gravidez detalhes fields based on gravidezAnteriores value
     setShowGravidezDetalhes(gravidezAnteriores > 0);
@@ -575,50 +547,33 @@ const GestantesCadastro: React.FC = () => {
                   </div>
                 )}
 
-                {/* Comorbidades */}
-                <div className="space-y-4">
-                  <h3 className="text-md font-medium">Comorbidades</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="diabetes" 
-                        checked={comorbidades.diabetes}
-                        onCheckedChange={(checked) => handleComorbidadeChange('diabetes', checked as boolean)}
-                      />
-                      <label
-                        htmlFor="diabetes"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Diabetes
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="has" 
-                        checked={comorbidades.has}
-                        onCheckedChange={(checked) => handleComorbidadeChange('has', checked as boolean)}
-                      />
-                      <label
-                        htmlFor="has"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        HAS (Hipertensão)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="nenhuma" 
-                        checked={comorbidades.nenhuma}
-                        onCheckedChange={(checked) => handleNenhumaChange(checked as boolean)}
-                      />
-                      <label
-                        htmlFor="nenhuma"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Nenhuma
-                      </label>
-                    </div>
-                  </div>
+                {/* Comorbidades como Select/Combobox */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="comorbidades"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Comorbidades</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma opção" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="diabetes">Diabetes</SelectItem>
+                            <SelectItem value="has">HAS (Hipertensão)</SelectItem>
+                            <SelectItem value="nenhuma">Nenhuma</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
